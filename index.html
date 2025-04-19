@@ -17,47 +17,65 @@
       justify-content: center;
       height: 100vh;
       text-align: center;
+      background-image: radial-gradient(circle at top left, #1a1a1a, #000);
+    }
+
+    img.logo {
+      width: 180px;
+      margin-bottom: 30px;
+      filter: drop-shadow(0 0 25px rgba(200, 130, 255, 0.8));
     }
 
     h1 {
-      font-size: 3em;
+      font-size: 3.2em;
       color: white;
       margin-bottom: 0.3em;
+      letter-spacing: 2px;
+      text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
     }
 
     p {
-      font-size: 1.4em;
+      font-size: 1.5em;
       line-height: 1.6;
       max-width: 700px;
       margin: 0 1em 2em;
+      color: #cfcfff;
+      text-shadow: 0 0 5px rgba(170, 150, 255, 0.3);
     }
 
     .highlight {
       color: white;
       font-weight: bold;
+      text-decoration: underline;
+      text-decoration-color: #a78bfa;
     }
 
     button {
-      background: linear-gradient(45deg, #c084fc, #a78bfa);
+      background: linear-gradient(135deg, #c084fc, #a78bfa);
       border: none;
       color: white;
-      padding: 15px 30px;
-      font-size: 1.2em;
-      border-radius: 8px;
+      padding: 15px 40px;
+      font-size: 1.3em;
+      border-radius: 12px;
       cursor: pointer;
       transition: transform 0.2s, box-shadow 0.2s;
+      font-weight: bold;
+      letter-spacing: 1px;
+      box-shadow: 0 0 15px rgba(167, 139, 250, 0.6);
     }
 
     button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 15px rgba(199, 132, 252, 0.5);
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(199, 132, 252, 0.9);
     }
   </style>
 </head>
 <body>
+  <img src="freicoin-logo.png" alt="FREICOIN Logo" class="logo">
   <h1>Willkommen bei <span class="highlight">FREICOIN</span></h1>
   <p>
-    Der Token für <span class="highlight">FREIHEIT</span>, Unabhängigkeit und dezentrale Werte.
+    Der Token für <span class="highlight">FREIHEIT</span>, Unabhängigkeit, Cyberrebellen und dezentrale Macht. 
+    Eine Vision aus Licht und Schatten – minimalistisch, frei und kompromisslos.
   </p>
   <button>Claim 1.000 FREI</button>
 </body>
