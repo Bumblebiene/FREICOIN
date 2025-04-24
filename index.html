@@ -90,11 +90,15 @@
     aber pssst – <i>nicht weitersagen.</i> 😏
   </p>
 
-  <!-- Web3 Script -->
   <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   <script>
     const contractAddress = "0xa848935b3c5195e926fdbd582c2d53594c57a38a";
-    const abi = [ {"inputs":[{"internalType":"address","name":"initialOwner","type":"address"}],"stateMutability":"nonpayable","type":"constructor"},{"inputs":[{"internalType":"address","name":"spender","type":"address"},{"internalType":"uint256","name":"allowance","type":"uint256"},{"internalType":"uint256","name":"needed","type":"uint256"}],"name":"ERC20InsufficientAllowance","type":"error"},{"inputs":[{"internalType":"address","name":"sender","type":"address"},{"internalType":"uint256","name":"balance","type":"uint256"},{"internalType":"uint256","name":"needed","type":"uint256"}],"name":"ERC20InsufficientBalance","type":"error"},{"inputs":[{"internalType":"address","name":"approver","type":"address"}],"name":"ERC20InvalidApprover","type":"error"},{"inputs":[{"internalType":"address","name":"receiver","type":"address"}],"name":"ERC20InvalidReceiver","type":"error"},{"inputs":[{"internalType":"address","name":"sender","type":"address"}],"name":"ERC20InvalidSender","type":"error"},{"inputs":[{"internalType":"address","name":"spender","type":"address"}],"name":"ERC20InvalidSpender","type":"error"},{"inputs":[{"internalType":"address","name":"owner","type":"address"}],"name":"OwnableInvalidOwner","type":"error"},{"inputs":[{"internalType":"address","name":"account","type":"address"}],"name":"OwnableUnauthorizedAccount","type":"error"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":true,"internalType":"address","name":"spender","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Approval","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"previousOwner","type":"address"},{"indexed":true,"internalType":"address","name":"newOwner","type":"address"}],"name":"OwnershipTransferred","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"account","type":"address"}],"name":"Paused","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"from","type":"address"},{"indexed":true,"internalType":"address","name":"to","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Transfer","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"account","type":"address"}],"name":"Unpaused","type":"event"},{"inputs":[{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"value","type":"uint256"}],"name":"transfer","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"} ];
+    const abi = [ {"inputs":[{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"value","type":"uint256"}],"name":"transfer","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"} ];
+
+    const supabaseUrl = 'https://deiwlpykwouzfkolcjkp.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRlaXdscHlrd291emZrb2xjamtwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU1MDk1MDksImV4cCI6MjA2MTA4NTUwOX0.I74cbgIvrpUM5QYTDkWLLiU7DjGJhfuRZzUazNtNVAk';
+    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
     let web3;
     let userAccount;
@@ -118,11 +122,23 @@
       await connectWallet();
       if (!userAccount) return;
 
+      const { data, error } = await supabase
+        .from('claims')
+        .select('wallet')
+        .eq('wallet', userAccount);
+
+      if (data.length > 0) {
+        alert("Du hast deinen FREICOIN bereits geclaimt!");
+        return;
+      }
+
       const contract = new web3.eth.Contract(abi, contractAddress);
       const amount = web3.utils.toWei("1000", "ether");
 
       try {
         const tx = await contract.methods.transfer(userAccount, amount).send({ from: userAccount });
+
+        await supabase.from('claims').insert([{ wallet: userAccount }]);
         alert("FREICOIN gesendet! TX Hash:\n" + tx.transactionHash);
       } catch (err) {
         console.error(err);
