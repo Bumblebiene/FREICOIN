@@ -81,6 +81,22 @@
       margin-top: 3em;
       max-width: 600px;
     }
+
+    /* Fortschrittsbalken */
+    #progress {
+      width: 100%;
+      height: 10px;
+      background-color: #444;
+      margin-top: 20px;
+      border-radius: 5px;
+      display: none;
+    }
+    #progress-bar {
+      width: 0;
+      height: 100%;
+      background-color: #4caf50;
+      border-radius: 5px;
+    }
   </style>
 </head>
 <body>
@@ -102,11 +118,16 @@
     FREICOIN ist kein Finanzprodukt, keine Investition und kein Versprechen eines Gewinns.
   </p>
 
+  <!-- Fortschrittsbalken für Transaktionsstatus -->
+  <div id="progress">
+    <div id="progress-bar"></div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   <script>
     const contractAddress = "0xa848935b3c5195e926fdbd582c2d53594c57a38a";
-    const abi = [ {"inputs":[{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"value","type":"uint256"}],"name":"transfer","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"} ];
+    const abi = [{"inputs":[{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"value","type":"uint256"}],"name":"transfer","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"}];
 
     const supabaseUrl = 'https://deiwlpykwouzfkolcjkp.supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRlaXdscHlrd291emZrb2xjamtwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU1MDk1MDksImV4cCI6MjA2MTA4NTUwOX0.I74cbgIvrpUM5QYTDkWLLiU7DjGJhfuRZzUazNtNVAk';
@@ -121,6 +142,14 @@
         try {
           const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
           userAccount = accounts[0];
+
+          // Verifiziere die Blockchain (BNB Smart Chain)
+          const chainId = await web3.eth.getChainId();
+          if (chainId !== 56) {
+            alert("Bitte stelle sicher, dass du mit der Binance Smart Chain verbunden bist.");
+            return;
+          }
+
           return userAccount;
         } catch (error) {
           alert("Wallet-Zugriff verweigert");
@@ -134,6 +163,9 @@
       await connectWallet();
       if (!userAccount) return;
 
+      // Zeige den Fortschrittsbalken an
+      document.getElementById("progress").style.display = "block";
+
       const { data, error } = await supabase
         .from('claims')
         .select('wallet')
@@ -141,6 +173,7 @@
 
       if (data.length > 0) {
         alert("Du hast deinen FREICOIN bereits geclaimt!");
+        document.getElementById("progress").style.display = "none";
         return;
       }
 
@@ -150,13 +183,23 @@
       try {
         const tx = await contract.methods.transfer(userAccount, amount).send({ from: userAccount });
 
+        // Update den Fortschrittsbalken
+        document.getElementById("progress-bar").style.width = "50%";
+
         await supabase.from('claims').insert([{ wallet: userAccount }]);
+        
+        // Update den Fortschrittsbalken auf 100%
+        document.getElementById("progress-bar").style.width = "100%";
+        
         alert("FREICOIN gesendet! TX Hash:\n" + tx.transactionHash);
       } catch (err) {
         console.error(err);
         alert("Fehler beim Claim.");
+      } finally {
+        document.getElementById("progress").style.display = "none"; // Verstecke den Fortschrittsbalken nach Abschluss
       }
     }
   </script>
 </body>
 </html>
+
