@@ -80,40 +80,45 @@
   <img src="freicoin-logo.png" alt="FREICOIN Logo" class="logo" />
   <h1>Willkommen bei <span class="highlight">FREICOIN</span></h1>
   <p>
-    Der Token für <span class="highlight">FREIHEIT</span>. Technologie als Werkzeug der Souveränität. 
-    Für freie Netze, offene Systeme und Menschen mit Haltung. 
+    Der Token für <span class="highlight">FREIHEIT</span>. Technologie als Werkzeug der Souveränität.<br>
+    Für offene Systeme, freie Netze und Menschen mit Haltung.<br>
     <span class="highlight">FREICOIN</span> steht für Verantwortung, Transparenz und Selbstbestimmung.
   </p>
 
   <button onclick="claimFrei()">Claim 1.000 FREI</button>
+
   <p class="smallnote">
-    🕶️ Schick den Link an deine Freunde – sie kriegen auch 1.000 FREI...<br>
+    🕶️ Schick den Link an deine Leute – sie kriegen auch 1.000 FREI...<br>
     aber pssst – <i>nicht weitersagen.</i> 😏
   </p>
 
-  <!-- Web3 Script -->
+  <!-- Web3 & Claim Script -->
   <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
   <script>
-    const contractAddress = "0xa848935b3c5195e926fdbd582c2d53594c57a38a"; // FREICOIN
-    const abi = [ /* HIER DEIN ABI EINTRAGEN */ ];
+    const contractAddress = "0xa848935b3c5195e926fdbd582c2d53594c57a38a"; // FREICOIN Contract
+    const senderWallet = "0x905026Fb4aAF8458F6Dd964A885217F090cE2333"; // Deine Wallet (Quelle)
+    const claimedWallets = new Set(); // einfache Frontend-Sperre (nicht fälschungssicher)
+
+    // === ABI EINSETZEN ===
+    const abi = [/* HIER KOMMT DEIN ABI REIN */];
+
     let web3;
     let userAccount;
 
-    const hasClaimed = () => localStorage.getItem("freicoin_claimed") === "true";
-    const markClaimed = () => localStorage.setItem("freicoin_claimed", "true");
-
     async function connectWallet() {
-      if (window.ethereum) {
-        web3 = new Web3(window.ethereum);
+      if (typeof window.ethereum !== 'undefined') {
         try {
-          const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+          await window.ethereum.request({ method: 'eth_requestAccounts' });
+          web3 = new Web3(window.ethereum);
+          const accounts = await web3.eth.getAccounts();
           userAccount = accounts[0];
           return userAccount;
-        } catch (error) {
-          alert("Wallet-Zugriff verweigert");
+        } catch (err) {
+          alert("Zugriff auf Wallet verweigert.");
+          console.error(err);
         }
       } else {
-        alert("MetaMask nicht installiert!");
+        alert("MetaMask oder Web3-Wallet nicht gefunden.");
       }
     }
 
@@ -121,8 +126,8 @@
       await connectWallet();
       if (!userAccount) return;
 
-      if (hasClaimed()) {
-        alert("Du hast bereits deine 1.000 FREICOIN geclaimt.");
+      if (claimedWallets.has(userAccount)) {
+        alert("Du hast bereits FREICOIN geclaimed.");
         return;
       }
 
@@ -130,12 +135,14 @@
       const amount = web3.utils.toWei("1000", "ether");
 
       try {
-        const tx = await contract.methods.transfer(userAccount, amount).send({ from: userAccount });
-        markClaimed();
-        alert("FREICOIN gesendet! TX Hash:\n" + tx.transactionHash);
+        const tx = await contract.methods.transfer(userAccount, amount).send({
+          from: senderWallet
+        });
+        claimedWallets.add(userAccount);
+        alert("✅ FREICOIN gesendet!\nTX Hash:\n" + tx.transactionHash);
       } catch (err) {
-        console.error(err);
-        alert("Fehler beim Claim.");
+        console.error("Transaktion fehlgeschlagen:", err);
+        alert("Fehler beim Senden der FREICOIN.");
       }
     }
   </script>
