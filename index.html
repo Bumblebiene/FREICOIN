@@ -80,45 +80,37 @@
   <img src="freicoin-logo.png" alt="FREICOIN Logo" class="logo" />
   <h1>Willkommen bei <span class="highlight">FREICOIN</span></h1>
   <p>
-    Der Token für <span class="highlight">FREIHEIT</span>. Technologie als Werkzeug der Souveränität.<br>
-    Für offene Systeme, freie Netze und Menschen mit Haltung.<br>
+    Der Token für <span class="highlight">FREIHEIT</span>. Technologie als Werkzeug der Souveränität. Für freie Netze, offene Systeme und Menschen mit Haltung.
     <span class="highlight">FREICOIN</span> steht für Verantwortung, Transparenz und Selbstbestimmung.
   </p>
 
   <button onclick="claimFrei()">Claim 1.000 FREI</button>
-
   <p class="smallnote">
     🕶️ Schick den Link an deine Leute – sie kriegen auch 1.000 FREI...<br>
     aber pssst – <i>nicht weitersagen.</i> 😏
   </p>
 
-  <!-- Web3 & Claim Script -->
+  <!-- Web3 Script -->
   <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
   <script>
-    const contractAddress = "0xa848935b3c5195e926fdbd582c2d53594c57a38a"; // FREICOIN Contract
-    const senderWallet = "0x905026Fb4aAF8458F6Dd964A885217F090cE2333"; // Deine Wallet (Quelle)
-    const claimedWallets = new Set(); // einfache Frontend-Sperre (nicht fälschungssicher)
-
-    // === ABI EINSETZEN ===
-    const abi = [/* HIER KOMMT DEIN ABI REIN */];
+    const contractAddress = "0xa848935b3c5195e926fdbd582c2d53594c57a38a";
+    const abi = [ {"inputs":[{"internalType":"address","name":"initialOwner","type":"address"}],"stateMutability":"nonpayable","type":"constructor"},{"inputs":[{"internalType":"address","name":"spender","type":"address"},{"internalType":"uint256","name":"allowance","type":"uint256"},{"internalType":"uint256","name":"needed","type":"uint256"}],"name":"ERC20InsufficientAllowance","type":"error"},{"inputs":[{"internalType":"address","name":"sender","type":"address"},{"internalType":"uint256","name":"balance","type":"uint256"},{"internalType":"uint256","name":"needed","type":"uint256"}],"name":"ERC20InsufficientBalance","type":"error"},{"inputs":[{"internalType":"address","name":"approver","type":"address"}],"name":"ERC20InvalidApprover","type":"error"},{"inputs":[{"internalType":"address","name":"receiver","type":"address"}],"name":"ERC20InvalidReceiver","type":"error"},{"inputs":[{"internalType":"address","name":"sender","type":"address"}],"name":"ERC20InvalidSender","type":"error"},{"inputs":[{"internalType":"address","name":"spender","type":"address"}],"name":"ERC20InvalidSpender","type":"error"},{"inputs":[{"internalType":"address","name":"owner","type":"address"}],"name":"OwnableInvalidOwner","type":"error"},{"inputs":[{"internalType":"address","name":"account","type":"address"}],"name":"OwnableUnauthorizedAccount","type":"error"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":true,"internalType":"address","name":"spender","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Approval","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"previousOwner","type":"address"},{"indexed":true,"internalType":"address","name":"newOwner","type":"address"}],"name":"OwnershipTransferred","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"account","type":"address"}],"name":"Paused","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"from","type":"address"},{"indexed":true,"internalType":"address","name":"to","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Transfer","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"account","type":"address"}],"name":"Unpaused","type":"event"},{"inputs":[{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"value","type":"uint256"}],"name":"transfer","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"} ];
 
     let web3;
     let userAccount;
 
     async function connectWallet() {
-      if (typeof window.ethereum !== 'undefined') {
+      if (window.ethereum) {
+        web3 = new Web3(window.ethereum);
         try {
-          await window.ethereum.request({ method: 'eth_requestAccounts' });
-          web3 = new Web3(window.ethereum);
-          const accounts = await web3.eth.getAccounts();
+          const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
           userAccount = accounts[0];
           return userAccount;
-        } catch (err) {
-          alert("Zugriff auf Wallet verweigert.");
-          console.error(err);
+        } catch (error) {
+          alert("Wallet-Zugriff verweigert");
         }
       } else {
-        alert("MetaMask oder Web3-Wallet nicht gefunden.");
+        alert("MetaMask nicht installiert!");
       }
     }
 
@@ -126,23 +118,15 @@
       await connectWallet();
       if (!userAccount) return;
 
-      if (claimedWallets.has(userAccount)) {
-        alert("Du hast bereits FREICOIN geclaimed.");
-        return;
-      }
-
       const contract = new web3.eth.Contract(abi, contractAddress);
       const amount = web3.utils.toWei("1000", "ether");
 
       try {
-        const tx = await contract.methods.transfer(userAccount, amount).send({
-          from: senderWallet
-        });
-        claimedWallets.add(userAccount);
-        alert("✅ FREICOIN gesendet!\nTX Hash:\n" + tx.transactionHash);
+        const tx = await contract.methods.transfer(userAccount, amount).send({ from: userAccount });
+        alert("FREICOIN gesendet! TX Hash:\n" + tx.transactionHash);
       } catch (err) {
-        console.error("Transaktion fehlgeschlagen:", err);
-        alert("Fehler beim Senden der FREICOIN.");
+        console.error(err);
+        alert("Fehler beim Claim.");
       }
     }
   </script>
